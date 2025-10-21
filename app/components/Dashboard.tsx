@@ -5,49 +5,63 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { TrendingDown, Target, Scale, Calendar, Plus } from 'lucide-react';
 import { COACHES } from '@/app/constants/coaches';
 import { useRouter } from 'next/navigation';
-import { useCoachSelection } from '../hooks/useCoachSelection';
+import { useCoachSelection } from '@/app/hooks/useCoachSelection';
+import { useWeightRecords } from '@/app/hooks/useWeightRecords';
 
 export default function Dashboard() {
     const router = useRouter();
-    const { selectedCoach, isLoading, clearCoach } = useCoachSelection();
+    const { selectedCoach, isLoading: coachLoading, clearCoach } = useCoachSelection();
+    const { settings, getStats, getRecentRecords, isLoading: recordsLoading } = useWeightRecords();
 
-    // 如果沒有選擇教練，導向選擇頁
-    React.useEffect(() => {
-        if (!isLoading && !selectedCoach) {
-            router.push('/');
-        }
-    }, [isLoading, selectedCoach, router]);
+    const stats = getStats();
+    const recentRecords = getRecentRecords(7);
 
-    if (isLoading || !selectedCoach) {
+    if (coachLoading || recordsLoading) {
+        return <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">載入中...</p>
+            </div>
+        </div>;
+    }
+
+    // 如果沒有設定，導向設定頁
+    if (!settings) {
+        router.push('/setup');
+        return null;
+    }
+
+    if (!selectedCoach) {
+        router.push('/');
+        return null;
+    }
+
+    // 準備圖表資料
+    if (!stats) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">載入中...</p>
-                </div>
+                <p className="text-gray-600">資料載入中...</p>
             </div>
         );
     }
 
+    const weightData = recentRecords.length > 0
+        ? recentRecords.map(record => ({
+            date: new Date(record.date).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }),
+            weight: record.weight,
+        })).reverse()
+        : [{ date: '今天', weight: stats.startWeight }]; // 沒記錄時顯示起始點
+
     const currentCoach = COACHES[selectedCoach];
-    const targetWeight = 65;
-    const currentWeight = 72.3;
-    const startWeight = 75;
-    const consecutiveDays = 5;
-
-    // 假的體重數據（最近 7 天）
-    const weightData = [
-        { date: '10/14', weight: 75.0 },
-        { date: '10/15', weight: 74.5 },
-        { date: '10/16', weight: 74.2 },
-        { date: '10/17', weight: 73.8 },
-        { date: '10/18', weight: 73.5 },
-        { date: '10/19', weight: 72.8 },
-        { date: '10/20', weight: 72.3 },
-    ];
-
-    const weightLost = startWeight - currentWeight;
-    const remainingWeight = currentWeight - targetWeight;
+    const {
+        currentWeight,
+        targetWeight,
+        weightLost,
+        remainingWeight,
+        consecutiveDays,
+        weeklyExerciseCount,
+        weeklyWeightChange,
+    } = stats;
 
     const CoachIcon = currentCoach.icon;
     const handleChangeCoach = () => {
@@ -181,7 +195,7 @@ export default function Dashboard() {
                 {/* Action Button */}
                 <button
                     className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-                    onClick={() => alert('跳轉到記錄頁面！（Week 2 實作）')}
+                    onClick={() => router.push('/record')}
                 >
                     <div className="flex items-center justify-center gap-3">
                         <Plus className="w-6 h-6" />
