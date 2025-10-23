@@ -3,7 +3,7 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingDown, Target, Scale, Calendar, Plus } from 'lucide-react';
-import { COACHES, getCoach } from '@/app/constants/coaches';
+import { getCoach } from '@/app/constants/coaches';
 import { useRouter } from 'next/navigation';
 import { useSupabaseRecords } from '../hooks/useSupabaseRecords';
 import Loading from './Loading';
