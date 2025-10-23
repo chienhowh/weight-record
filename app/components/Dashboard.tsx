@@ -3,26 +3,18 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingDown, Target, Scale, Calendar, Plus } from 'lucide-react';
-import { COACHES } from '@/app/constants/coaches';
+import { COACHES, getCoach } from '@/app/constants/coaches';
 import { useRouter } from 'next/navigation';
-import { useCoachSelection } from '@/app/hooks/useCoachSelection';
-import { useWeightRecords } from '@/app/hooks/useWeightRecords';
+import { useSupabaseRecords } from '../hooks/useSupabaseRecords';
+import Loading from './Loading';
 
 export default function Dashboard() {
     const router = useRouter();
-    const { selectedCoach, isLoading: coachLoading, clearCoach } = useCoachSelection();
-    const { settings, getStats, getRecentRecords, isLoading: recordsLoading } = useWeightRecords();
+    const { settings, coachId, getStats, getRecentRecords, isLoading, saveCoach } = useSupabaseRecords();
 
-    const stats = getStats();
-    const recentRecords = getRecentRecords(7);
-
-    if (coachLoading || recordsLoading) {
-        return <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">載入中...</p>
-            </div>
-        </div>;
+    const currentCoach = getCoach(coachId);
+    if (isLoading) {
+        return <Loading />
     }
 
     // 如果沒有設定，導向設定頁
@@ -31,12 +23,14 @@ export default function Dashboard() {
         return null;
     }
 
-    if (!selectedCoach) {
+    if (!currentCoach) {
         router.push('/');
         return null;
     }
 
-    // 準備圖表資料
+    const stats = getStats();
+
+
     if (!stats) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -45,14 +39,15 @@ export default function Dashboard() {
         );
     }
 
+    // 準備圖表資料
+    const recentRecords = getRecentRecords(7);
     const weightData = recentRecords.length > 0
         ? recentRecords.map(record => ({
             date: new Date(record.date).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }),
             weight: record.weight,
         })).reverse()
-        : [{ date: '今天', weight: stats.startWeight }]; // 沒記錄時顯示起始點
+        : [{ date: '今天', weight: stats.startWeight }];
 
-    const currentCoach = COACHES[selectedCoach];
     const {
         currentWeight,
         targetWeight,
@@ -64,10 +59,14 @@ export default function Dashboard() {
     } = stats;
 
     const CoachIcon = currentCoach.icon;
-    const handleChangeCoach = () => {
-        clearCoach();
-        router.push('/');
+
+    // TODO: 暫不開放
+    const handleChangeCoach = async () => {
+        if (confirm('確定要更換教練嗎？')) {
+            router.push('/');
+        }
     };
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -96,7 +95,7 @@ export default function Dashboard() {
                             <p className="text-sm text-gray-500">你的專屬教練</p>
                             <h2 className="text-2xl font-bold text-gray-800">{currentCoach.name}</h2>
                         </div>
-                        <button onClick={handleChangeCoach} className="text-gray-400 hover:text-gray-600 text-sm">
+                        <button disabled onClick={handleChangeCoach} className="text-gray-400 hover:text-gray-600 text-sm">
                             更換
                         </button>
                     </div>

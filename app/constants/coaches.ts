@@ -71,3 +71,13 @@ export const COACHES = {
 
 export type CoachId = keyof typeof COACHES;
 export type Coach = typeof COACHES[CoachId];
+
+export function getCoach(coachId: string | null | undefined): Coach | null {
+    if (!coachId) return null;
+
+    if (coachId in COACHES) {
+        return COACHES[coachId as CoachId];
+    }
+
+    return null;
+}

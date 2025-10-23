@@ -2,27 +2,39 @@
 import { useState } from "react";
 import { CoachId, COACHES } from "../constants/coaches";
 import { useRouter } from "next/navigation";
-import { useCoachSelection } from "../hooks/useCoachSelection";
 import { ArrowRight } from "lucide-react";
+import { useSupabaseRecords } from "../hooks/useSupabaseRecords";
+import Loading from "./Loading";
 
 const CoachSelectionPage = () => {
     const router = useRouter();
-    const { saveCoach } = useCoachSelection();
+    const { saveCoach, isLoading: dataLoading } = useSupabaseRecords();
     const [selectedCoach, setSelectedCoach] = useState<CoachId | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     const handleSelectCoach = (coachId: CoachId) => {
         setSelectedCoach(coachId);
     };
 
-    const handleConfirm = () => {
-        if (selectedCoach) {
-            saveCoach(selectedCoach);
-            router.push('/dashboard');
+    const handleConfirm = async () => {
+        if (!selectedCoach) return;
+
+        setIsSaving(true);
+        try {
+            await saveCoach(selectedCoach);
+            router.push('/setup');
+        } catch (error) {
+            alert('儲存失敗，請重試');
+            console.error(error);
+        } finally {
+            setIsSaving(false);
         }
-        // 實際使用時這裡會：
-        // 1. 儲存到 localStorage 或 Context
-        // 2. 導航到主控台頁面
+    };
+
+    if (dataLoading) {
+        return <Loading />
     }
+
 
     const coachList = Object.values(COACHES);
 
@@ -109,18 +121,27 @@ const CoachSelectionPage = () => {
                 <div className="flex justify-center pb-8">
                     <button
                         onClick={handleConfirm}
-                        disabled={!selectedCoach}
+                        disabled={!selectedCoach || isSaving}
                         className={`
               flex items-center gap-2 px-8 py-4 rounded-full text-lg font-bold
               transition-all duration-300 transform
-              ${selectedCoach
+              ${selectedCoach && !isSaving
                                 ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xl hover:shadow-2xl hover:scale-105 cursor-pointer'
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             }
             `}
                     >
-                        開始訓練
-                        <ArrowRight className="w-6 h-6" />
+                        {isSaving ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                儲存中...
+                            </>
+                        ) : (
+                            <>
+                                開始訓練
+                                <ArrowRight className="w-6 h-6" />
+                            </>
+                        )}
                     </button>
                 </div>
 

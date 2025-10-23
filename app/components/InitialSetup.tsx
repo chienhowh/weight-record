@@ -2,18 +2,18 @@
 
 import React, { useState } from 'react';
 import { Target, Scale, Calendar } from 'lucide-react';
-import { useWeightRecords } from '@/app/hooks/useWeightRecords';
+import { useSupabaseRecords } from '../hooks/useSupabaseRecords';
 
 interface InitialSetupProps {
     onComplete: () => void;
 }
 
 export default function InitialSetup({ onComplete }: InitialSetupProps) {
-    const { saveSettings } = useWeightRecords();
+    const { saveSettings } = useSupabaseRecords();
     const [targetWeight, setTargetWeight] = useState('');
     const [startWeight, setStartWeight] = useState('');
-
-    const handleSubmit = () => {
+    const [isSaving, setIsSaving] = useState(false);
+    const handleSubmit = async () => {
         if (!targetWeight || !startWeight) {
             alert('請填寫所有欄位');
             return;
@@ -27,13 +27,19 @@ export default function InitialSetup({ onComplete }: InitialSetupProps) {
             return;
         }
 
-        saveSettings({
-            targetWeight: target,
-            startWeight: start,
-            startDate: new Date().toISOString().split('T')[0],
-        });
-
-        onComplete();
+        try {
+            await saveSettings({
+                targetWeight: target,
+                startWeight: start,
+                startDate: new Date().toISOString().split('T')[0],
+            });
+            onComplete();
+        } catch (error) {
+            alert('儲存失敗，請重試');
+            console.error(error);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -100,9 +106,20 @@ export default function InitialSetup({ onComplete }: InitialSetupProps) {
                     {/* Submit Button */}
                     <button
                         onClick={handleSubmit}
-                        className="w-full py-4 rounded-2xl font-bold text-lg shadow-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                        disabled={isSaving}
+                        className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl transition-all transform ${isSaving
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]'
+                            }`}
                     >
-                        開始記錄
+                        {isSaving ? (
+                            <span className="flex items-center justify-center gap-2">
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                儲存中...
+                            </span>
+                        ) : (
+                            '開始記錄'
+                        )}
                     </button>
                 </div>
             </div>
