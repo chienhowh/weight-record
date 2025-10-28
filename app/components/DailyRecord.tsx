@@ -1,6 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, Scale, Dumbbell, StickyNote, Check } from 'lucide-react';
+import { useSupabaseRecords } from '../hooks/useSupabaseRecords';
+import { useRouter } from 'next/navigation';
 
 const EXERCISE_TYPES = [
     { id: 'running', label: '跑步', emoji: '🏃' },
@@ -13,14 +15,43 @@ const EXERCISE_TYPES = [
 ];
 
 const DailyRecord = () => {
+    const router = useRouter();
     const today = new Date().toISOString().split('T')[0];
-
+    const {
+        addRecord,
+        updateRecord,
+        fetchRecordByDate,
+        isLoading,
+        user
+    } = useSupabaseRecords();
     const [date, setDate] = useState(today);
     const [weight, setWeight] = useState('');
     const [exercised, setExercised] = useState(false);
     const [exerciseType, setExerciseType] = useState('');
     const [note, setNote] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [existingRecordId, setExistingRecordId] = useState<string | null>(null);
+
+    useEffect(() => {
+        loadRecordForDate(date);
+    }, [date, user]);
+
+    const loadRecordForDate = async (selectedDate: string) => {
+        try {
+            const data = await fetchRecordByDate(selectedDate);
+            if (data) {
+                // 有現有記錄，填入表單
+                setWeight(data.weight.toString());
+                setExercised(data.exercised);
+                setExerciseType(data.exercise_type || '');
+                setNote(data.note || '');
+                setExistingRecordId(data.id);
+            }
+        } catch (error) {
+            console.error('載入記錄失敗:', error);
+            alert('載入記錄失敗，請重試');
+        }
+    };
 
     // 快速調整體重
     const adjustWeight = (delta: number) => {
@@ -43,26 +74,35 @@ const DailyRecord = () => {
 
         setIsSaving(true);
 
-        // 模擬儲存（Week 2 Day 4-5 會實作真實的儲存）
-        const record = {
-            id: Date.now().toString(),
-            date,
-            weight: parseFloat(weight),
-            exercised,
-            exerciseType: exercised ? exerciseType : null,
-            note,
-            createdAt: new Date().toISOString(),
-        };
+        try {
+            const recordData = {
+                date,
+                weight: parseFloat(weight),
+                exercised,
+                exerciseType: exercised ? exerciseType : null,
+                note: note.trim(),
+            };
 
-        console.log('儲存記錄：', record);
+            if (existingRecordId) {
+                // 更新現有記錄
+                updateRecord(existingRecordId, recordData)
+            } else {
+                addRecord(recordData)
+            }
 
-        // 模擬 API 延遲
-        setTimeout(() => {
+            router.push('/dashboard');
+        } catch (error: any) {
+            console.error('儲存失敗:', error);
+
+            // 處理重複記錄錯誤
+            if (error.code === '23505') {
+                alert('此日期已有記錄，請重新整理頁面後再試');
+            } else {
+                alert(`儲存失敗: ${error.message || '請重試'}`);
+            }
+        } finally {
             setIsSaving(false);
-            alert('記錄成功！\n\n' + JSON.stringify(record, null, 2));
-            // 實際使用時會導航回 dashboard
-            // router.push('/dashboard');
-        }, 500);
+        }
     };
 
     return (
@@ -77,12 +117,19 @@ const DailyRecord = () => {
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </button>
-                        <h1 className="text-2xl font-bold text-gray-800">記錄今日數據</h1>
+                        <h1 className="text-2xl font-bold text-gray-800"> {existingRecordId ? '編輯記錄' : '記錄今日數據'}</h1>
                     </div>
                 </div>
             </div>
 
             <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+                {existingRecordId && (
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
+                        <p className="text-sm text-blue-800">
+                            📝 此日期已有記錄，儲存後將會更新現有資料
+                        </p>
+                    </div>
+                )}
                 <form onSubmit={handleSubmit} className="space-y-6">
 
                     {/* Date Picker */}
@@ -98,6 +145,7 @@ const DailyRecord = () => {
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
                             max={today}
+                            disabled={isLoading || isSaving}
                             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none text-lg"
                         />
                     </div>
@@ -118,6 +166,7 @@ const DailyRecord = () => {
                                 value={weight}
                                 onChange={(e) => setWeight(e.target.value)}
                                 placeholder="輸入體重"
+                                disabled={isLoading || isSaving}
                                 className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-2xl text-center font-bold"
                             />
                             <span className="text-2xl font-bold text-gray-500">kg</span>
@@ -125,34 +174,17 @@ const DailyRecord = () => {
 
                         {/* Quick Adjust Buttons */}
                         <div className="flex gap-2">
-                            <button
-                                type="button"
-                                onClick={() => adjustWeight(-0.5)}
-                                className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium text-gray-700 transition-colors"
-                            >
-                                -0.5
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => adjustWeight(-0.1)}
-                                className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium text-gray-700 transition-colors"
-                            >
-                                -0.1
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => adjustWeight(0.1)}
-                                className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium text-gray-700 transition-colors"
-                            >
-                                +0.1
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => adjustWeight(0.5)}
-                                className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium text-gray-700 transition-colors"
-                            >
-                                +0.5
-                            </button>
+                            {[-0.5, -0.1, 0.1, 0.5].map((delta) => (
+                                <button
+                                    key={delta}
+                                    type="button"
+                                    onClick={() => adjustWeight(delta)}
+                                    disabled={isLoading || isSaving}
+                                    className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {delta > 0 ? '+' : ''}{delta}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
@@ -224,18 +256,22 @@ const DailyRecord = () => {
                             onChange={(e) => setNote(e.target.value)}
                             placeholder="今天的感想、飲食狀況或其他想記錄的事..."
                             rows={4}
+                            disabled={isLoading || isSaving}
                             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-yellow-500 focus:outline-none resize-none"
                         />
+                        <p className="text-xs text-gray-500 mt-2 text-right">
+                            {note.length} / 500
+                        </p>
                     </div>
 
                     {/* Submit Button */}
                     <button
                         type="submit"
-                        disabled={isSaving}
+                        disabled={isSaving || isLoading}
                         className={`
               w-full py-4 rounded-2xl font-bold text-lg shadow-xl
               transition-all transform
-              ${isSaving
+              ${isSaving || isLoading
                                 ? 'bg-gray-400 cursor-not-allowed'
                                 : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]'
                             }
@@ -262,6 +298,10 @@ const DailyRecord = () => {
                         <li>• 建議每天固定時間量體重，數據會更準確</li>
                         <li>• 體重波動是正常的，關注整體趨勢而非單日變化</li>
                         <li>• 運動後體重可能因為水分而暫時增加</li>
+                        {existingRecordId && (
+                            <li className="font-bold text-blue-700">• 此日期已有記錄，儲存將會更新原有資料</li>
+                        )}
+
                     </ul>
                 </div>
             </div>

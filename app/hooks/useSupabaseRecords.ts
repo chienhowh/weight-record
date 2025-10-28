@@ -242,6 +242,26 @@ export function useSupabaseRecords() {
         return records.slice(0, days);
     };
 
+    //  從DB
+    const fetchRecordByDate = async (date: string) => {
+        if (!user) return null;
+
+        try {
+            const { data, error } = await supabase
+                .from('weight_records')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('date', date)
+                .maybeSingle(); // 使用 maybeSingle 避免找不到時拋錯
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Error fetching record by date:', error);
+            return null;
+        }
+    };
+
     // 計算統計
     const getStats = (): Stats | null => {
         if (!settings) {
@@ -333,6 +353,7 @@ export function useSupabaseRecords() {
         saveSettings,
         saveCoach,
         getRecordByDate,
+        fetchRecordByDate,
         getRecentRecords,
         getStats,
     };
