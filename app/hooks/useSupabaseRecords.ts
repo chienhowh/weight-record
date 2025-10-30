@@ -186,6 +186,130 @@ export function useSupabaseRecords() {
         }
     };
 
+    const addRecordWithAI = async (record: Omit<WeightRecord, 'id' | 'createdAt' | 'aiResponse'>) => {
+        if (!user) {
+            console.log("❌ addRecordWithAI: 沒有 user");
+            return null;
+        }
+
+        console.log("✅ addRecordWithAI: userId:", user.id, "record:", record);
+
+        try {
+            // 1. 先儲存記錄到 Supabase
+            const { data, error } = await supabase
+                .from('weight_records')
+                .insert({
+                    user_id: user.id,
+                    date: record.date,
+                    weight: record.weight,
+                    exercised: record.exercised,
+                    exercise_type: record.exerciseType,
+                    note: record.note,
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            const newRecord: WeightRecord = {
+                id: data.id,
+                date: data.date,
+                weight: data.weight,
+                exercised: data.exercised,
+                exerciseType: data.exercise_type,
+                note: data.note || '',
+                aiResponse: null,
+                createdAt: data.created_at,
+            };
+
+            setRecords([newRecord, ...records]);
+
+            // 3. 背景呼叫 AI API (不阻塞 UI)
+            generateAIResponse(newRecord.id, record, coachId);
+
+            console.log("✅ addRecordWithAI 成功:", newRecord.id);
+            return newRecord;
+        } catch (error) {
+            console.error('❌ 新增記錄失敗:', error);
+            throw error;
+        }
+    };
+
+    // 生成 AI 回應
+    const generateAIResponse = async (
+        recordId: string,
+        record: Omit<WeightRecord, 'id' | 'createdAt' | 'aiResponse'>,
+        currentCoachId: string | null
+    ) => {
+        if (!user || !currentCoachId) return;
+
+        try {
+            console.log("🤖 開始生成 AI 回應...");
+
+            // 計算體重變化
+            const yesterdayRecord = records.find(r => {
+                const yesterday = new Date(record.date);
+                yesterday.setDate(yesterday.getDate() - 1);
+                return r.date === yesterday.toISOString().split('T')[0];
+            });
+            const weightChange = yesterdayRecord
+                ? record.weight - yesterdayRecord.weight
+                : 0;
+
+            // 計算統計數據
+            const stats = getStats();
+
+            // 呼叫 AI API
+            const response = await fetch('/api/coach-response', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: user.id,
+                    coachId: currentCoachId,
+                    weight: record.weight,
+                    exercised: record.exercised,
+                    exerciseType: record.exerciseType,
+                    note: record.note,
+                    weightChange,
+                    weeklyExerciseCount: stats?.weeklyExerciseCount ?? 0,
+                    consecutiveDays: stats?.consecutiveDays ?? 0,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`AI API 錯誤: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("✅ AI 回應:", data.response);
+
+            // 4. 更新記錄加上 AI 回應
+            const { error: updateError } = await supabase
+                .from('weight_records')
+                .update({ ai_response: data.response })
+                .eq('id', recordId)
+                .eq('user_id', user.id);
+
+            if (updateError) throw updateError;
+
+            // 5. 更新本地 state
+            setRecords(prevRecords =>
+                prevRecords.map(r =>
+                    r.id === recordId
+                        ? { ...r, aiResponse: data.response }
+                        : r
+                )
+            );
+
+            console.log("✅ AI 回應已儲存到資料庫");
+        } catch (error) {
+            console.error('❌ AI 回應生成失敗:', error);
+            // 不阻塞主流程，靜默失敗
+        }
+    };
+
     // 更新記錄（例如加上 AI 回應）
     const updateRecord = async (id: string, updates: Partial<WeightRecord>) => {
         if (!user) return;
@@ -348,6 +472,7 @@ export function useSupabaseRecords() {
         coachId,
         isLoading: authLoading || isLoading,
         addRecord,
+        addRecordWithAI,
         updateRecord,
         deleteRecord,
         saveSettings,

@@ -18,8 +18,8 @@ const DailyRecord = () => {
     const router = useRouter();
     const today = new Date().toISOString().split('T')[0];
     const {
-        addRecord,
         updateRecord,
+        addRecordWithAI,
         fetchRecordByDate,
         isLoading,
         user
@@ -46,6 +46,12 @@ const DailyRecord = () => {
                 setExerciseType(data.exercise_type || '');
                 setNote(data.note || '');
                 setExistingRecordId(data.id);
+            } else {
+                setWeight('');
+                setExercised(false);
+                setExerciseType('');
+                setNote('');
+                setExistingRecordId(null);
             }
         } catch (error) {
             console.error('載入記錄失敗:', error);
@@ -87,9 +93,9 @@ const DailyRecord = () => {
                 // 更新現有記錄
                 updateRecord(existingRecordId, recordData)
             } else {
-                addRecord(recordData)
+                addRecordWithAI(recordData)
             }
-
+            
             router.push('/dashboard');
         } catch (error: any) {
             console.error('儲存失敗:', error);
