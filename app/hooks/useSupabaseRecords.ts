@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/app/lib/supabase';
+import { supabaseClient as supabase } from '@/app/lib/supabase/client';
 import { useAuth } from './useAuth';
 
 export interface WeightRecord {
