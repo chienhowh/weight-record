@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CoachId, COACHES } from "../constants/coaches";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
@@ -8,9 +8,18 @@ import Loading from "./Loading";
 
 const CoachSelectionPage = () => {
     const router = useRouter();
-    const { saveCoach, isLoading: dataLoading } = useSupabaseRecords();
+    const { coachId: existingCoachId, saveCoach, isLoading: dataLoading } = useSupabaseRecords();
     const [selectedCoach, setSelectedCoach] = useState<CoachId | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [mode, setMode] = useState<'select' | 'update'>('select');
+
+    useEffect(() => {
+        if (!dataLoading && existingCoachId) {
+            setSelectedCoach(existingCoachId as CoachId);
+            setMode('update');
+        }
+    }, [existingCoachId, dataLoading]);
+
 
     const handleSelectCoach = (coachId: CoachId) => {
         setSelectedCoach(coachId);
@@ -22,13 +31,23 @@ const CoachSelectionPage = () => {
         setIsSaving(true);
         try {
             await saveCoach(selectedCoach);
-            router.push('/setup');
+            if (mode === 'select') {
+                // 新選擇，導向 setup
+                router.push('/setup');
+            } else {
+                // 更新教練，返回 dashboard
+                router.push('/dashboard');
+            }
         } catch (error) {
             alert('儲存失敗，請重試');
             console.error(error);
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const handleCancel = () => {
+        router.push('/dashboard');
     };
 
     if (dataLoading) {
@@ -42,13 +61,27 @@ const CoachSelectionPage = () => {
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4 sm:p-8">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
+                {/* Header */}
                 <div className="text-center mb-12 pt-8">
+                    {/* 模式指示 */}
                     <h1 className="text-4xl sm:text-5xl font-bold text-gray-800 mb-4">
-                        選擇你的專屬教練
+                        {mode === 'select' ? '選擇你的專屬教練' : '更換專屬教練'}
                     </h1>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        每位教練都有獨特的風格，選擇最能激勵你的那一位，開始你的減重旅程 💪
+                        {mode === 'select'
+                            ? '每位教練都有獨特的風格，選擇最能激勵你的那一位，開始你的減重旅程 💪'
+                            : '選擇新的教練來陪伴你的減重旅程'
+                        }
                     </p>
+
+                    {/* 目前教練提示 */}
+                    {mode === 'update' && existingCoachId && (
+                        <p className="text-sm text-gray-500 mt-4">
+                            目前教練：<span className="font-bold text-gray-700">
+                                {COACHES[existingCoachId as CoachId]?.name}
+                            </span>
+                        </p>
+                    )}
                 </div>
 
                 {/* Coach Cards Grid */}
@@ -118,7 +151,17 @@ const CoachSelectionPage = () => {
                 </div>
 
                 {/* Confirm Button */}
-                <div className="flex justify-center pb-8">
+                <div className="flex justify-center gap-4 pb-8">
+                    {/* 取消按鈕 (只在更新模式顯示) */}
+                    {mode === 'update' && (
+                        <button
+                            onClick={handleCancel}
+                            disabled={isSaving}
+                            className="px-8 py-4 rounded-full text-lg font-bold border-2 border-gray-300 text-gray-700 hover:bg-gray-50 transition-all disabled:opacity-50"
+                        >
+                            取消
+                        </button>
+                    )}
                     <button
                         onClick={handleConfirm}
                         disabled={!selectedCoach || isSaving}
@@ -138,7 +181,7 @@ const CoachSelectionPage = () => {
                             </>
                         ) : (
                             <>
-                                開始訓練
+                                {mode === 'select' ? '開始訓練' : '確認更換'}
                                 <ArrowRight className="w-6 h-6" />
                             </>
                         )}
@@ -150,6 +193,15 @@ const CoachSelectionPage = () => {
                     <p className="text-center text-gray-500 text-sm animate-pulse">
                         👆 點擊選擇一位教練開始你的減重計畫
                     </p>
+                )}
+
+                {/* 變更提示 */}
+                {mode === 'update' && selectedCoach && selectedCoach !== existingCoachId && (
+                    <div className="mt-6 max-w-md mx-auto bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+                        <p className="text-sm text-yellow-800 text-center">
+                            ⚠️ 更換教練後，之前的對話記錄不會改變，新的記錄將使用新教練的風格回應
+                        </p>
+                    </div>
                 )}
             </div>
         </div>

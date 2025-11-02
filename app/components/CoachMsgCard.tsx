@@ -5,6 +5,7 @@ import { MessageCircle, Sparkles, Loader2, Flame } from 'lucide-react';
 import { getCoach } from '@/app/constants/coaches';
 import type { WeightRecord } from '@/app/hooks/useSupabaseRecords';
 import type { Stats } from '@/app/hooks/useSupabaseRecords';
+import { useRouter } from 'next/navigation';
 
 interface CoachMessageCardProps {
     coachId: string | null;
@@ -16,6 +17,7 @@ export default function CoachMsgCard({ coachId, latestRecord, stats }: CoachMess
     const [isLoading, setIsLoading] = useState(false);
     const coach = getCoach(coachId);
     const { consecutiveDays } = stats;
+    const router = useRouter();
     // 檢查 AI 回應是否還在生成中
     useEffect(() => {
         if (latestRecord && !latestRecord.aiResponse) {
@@ -47,13 +49,12 @@ export default function CoachMsgCard({ coachId, latestRecord, stats }: CoachMess
                 <div className="flex-1">
                     <h3 className="text-lg font-bold text-gray-800">{coach.name}</h3>
                 </div>
-
-                {consecutiveDays > 0 && (
-                    <div className="flex items-center gap-1 px-3 py-1 bg-orange-50 rounded-full">
-                        💪
-                        <span className={`text-sm font-bold ${coach.textColor}`}>{consecutiveDays}</span>
-                    </div>
-                )}
+                <button
+                    onClick={() => router.push('/')}
+                    className="px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                >
+                    更換教練
+                </button>
             </div>
 
             {/* Content */}

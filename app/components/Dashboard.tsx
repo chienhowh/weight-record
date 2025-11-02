@@ -53,6 +53,7 @@ export default function Dashboard() {
 
     // 準備圖表資料
     const recentRecords = getRecentRecords(7);
+    console.log("🚀 ~ Dashboard ~ recentRecords:", recentRecords)
     const latestRecord = recentRecords[0] || null; // 取得最新記錄
 
     const weightData = recentRecords.length > 0
@@ -62,20 +63,11 @@ export default function Dashboard() {
         })).reverse()
         : [{ date: '今天', weight: stats.startWeight }];
 
-    // TODO: 暫不開放
-    const handleChangeCoach = async () => {
-        if (confirm('確定要更換教練嗎？')) {
-            router.push('/');
-        }
-    };
-
     const handleLogout = async () => {
         if (confirm('確定要登出嗎？')) {
             await signOut();
         }
     };
-
-
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">

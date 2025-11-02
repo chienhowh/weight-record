@@ -19,7 +19,7 @@ const DailyRecord = () => {
     const today = new Date().toISOString().split('T')[0];
     const {
         updateRecord,
-        addRecordWithAI,
+        addRecord,
         fetchRecordByDate,
         isLoading,
         user
@@ -93,7 +93,7 @@ const DailyRecord = () => {
                 // 更新現有記錄
                 updateRecord(existingRecordId, recordData)
             } else {
-                addRecordWithAI(recordData)
+                addRecord(recordData)
             }
             
             router.push('/dashboard');
