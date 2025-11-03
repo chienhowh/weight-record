@@ -310,6 +310,83 @@ export function useSupabaseRecords() {
         }
     };
 
+    const generateAIResponseStream = async (
+        record: Omit<WeightRecord, 'createdAt' | 'aiResponse'>,
+        setResponse: React.Dispatch<React.SetStateAction<string>>
+    ) => {
+        if (!user || !coachId) return;
+
+        try {
+            console.log("🤖 開始生成 AI 回應...");
+
+            // 計算體重變化
+            const yesterdayRecord = records.find(r => {
+                const yesterday = new Date(record.date);
+                yesterday.setDate(yesterday.getDate() - 1);
+                return r.date === yesterday.toISOString().split('T')[0];
+            });
+            const weightChange = yesterdayRecord
+                ? record.weight - yesterdayRecord.weight
+                : 0;
+
+            // 計算統計數據
+            const stats = getStats();
+
+            // 呼叫 AI API
+            const response = await fetch('/api/coach-response-stream', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: user.id,
+                    coachId: coachId,
+                    weight: record.weight,
+                    exercised: record.exercised,
+                    exerciseType: record.exerciseType,
+                    note: record.note,
+                    weightChange,
+                    weeklyExerciseCount: stats?.weeklyExerciseCount ?? 0,
+                    consecutiveDays: stats?.consecutiveDays ?? 0,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`AI API 錯誤: ${response.status}`);
+            }
+
+            if (!response.body) {
+                throw new Error("API 沒有返回串流內容。");
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let fullResponse = "";
+            // 4. 迴圈讀取並更新畫面
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    break; // 串流結束
+                }
+
+                const chunk = decoder.decode(value, { stream: true });
+
+                // ⭐️ 核心：使用 setResponse 累加文字 ⭐️
+                // React 會處理這個狀態更新，並重新渲染 UI
+                setResponse((prev) => prev + chunk);
+                fullResponse += chunk;
+            }
+            await updateRecord(record.id, {
+                aiResponse: fullResponse,
+            });
+
+        } catch (error) {
+            console.error('❌ AI 回應生成失敗:', error);
+            // 將錯誤訊息顯示在畫面上
+            setResponse((prev) => prev + `\n\n[錯誤: ${error instanceof Error ? error.message : '未知錯誤'}]`);
+        }
+    };
+
     // 更新記錄（例如加上 AI 回應）
     const updateRecord = async (id: string, updates: Partial<WeightRecord>) => {
         if (!user) return;
@@ -481,5 +558,6 @@ export function useSupabaseRecords() {
         fetchRecordByDate,
         getRecentRecords,
         getStats,
+        generateAIResponseStream
     };
 }

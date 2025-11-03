@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, Sparkles, Loader2, Flame } from 'lucide-react';
+import { MessageCircle, Sparkles, Loader2, Flame, AirVent } from 'lucide-react';
 import { getCoach } from '@/app/constants/coaches';
 import type { WeightRecord } from '@/app/hooks/useSupabaseRecords';
 import type { Stats } from '@/app/hooks/useSupabaseRecords';
 import { useRouter } from 'next/navigation';
+import { useSupabaseRecords } from '@/app/hooks/useSupabaseRecords';
 
 interface CoachMessageCardProps {
     coachId: string | null;
@@ -18,27 +19,38 @@ export default function CoachMsgCard({ coachId, latestRecord, stats }: CoachMess
     const coach = getCoach(coachId);
     const { consecutiveDays } = stats;
     const router = useRouter();
+    const { generateAIResponseStream } = useSupabaseRecords();
+    const [aiResponse, setAiResponse] = useState('');
     // 檢查 AI 回應是否還在生成中
     useEffect(() => {
         if (latestRecord && !latestRecord.aiResponse) {
-            setIsLoading(true);
-
-            // 30 秒後停止 loading
-            const timeout = setTimeout(() => {
-                setIsLoading(false);
-            }, 30000);
-
-            return () => clearTimeout(timeout);
-        } else {
-            setIsLoading(false);
+            handleGenerateAIResponse(latestRecord);
         }
+
     }, [latestRecord]);
 
-    if (!coach || !latestRecord) return null;
+    if (!coach) return null;
 
     const CoachIcon = coach.icon;
-    const hasResponse = !!latestRecord.aiResponse;
+    const hasResponse = !!latestRecord?.aiResponse;
 
+
+    const handleGenerateAIResponse = async (latestRecord: WeightRecord) => {
+        setIsLoading(true);
+        setAiResponse(''); // 清空上次的回覆
+
+        try {
+            // 2. 呼叫前端服務函式，並傳入 setResponse
+            await generateAIResponseStream(
+                latestRecord, // 你的日誌數據
+                setAiResponse // 👈 將狀態更新函式傳遞給它
+            );
+        } catch (e) {
+            // generateAIResponseStream 內部已經處理了錯誤顯示，這裡可以忽略或做其他處理
+        } finally {
+            setIsLoading(false);
+        }
+    };
     return (
         <div className={`bg-gradient-to-br ${coach.bgGradient} rounded-2xl p-5 border-2 ${coach.borderColor} shadow-lg`}>
             {/* Header */}
@@ -59,13 +71,9 @@ export default function CoachMsgCard({ coachId, latestRecord, stats }: CoachMess
 
             {/* Content */}
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                {isLoading ? (
-                    // Loading 狀態
-                    <div className="flex items-center gap-3 text-gray-500">
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <p className="text-sm">教練正在思考回應...</p>
-                    </div>
-                ) : hasResponse ? (
+                {!latestRecord ? <p className="text-gray-600 text-sm">
+                    開始記錄你的減重旅程，讓我給你專屬的鼓勵！
+                </p> : hasResponse ? (
                     // 有 AI 回應
                     <div className="space-y-2">
                         <p className="text-gray-800 leading-relaxed">
@@ -80,12 +88,16 @@ export default function CoachMsgCard({ coachId, latestRecord, stats }: CoachMess
                             })}
                         </p>
                     </div>
-                ) : (
-                    // 沒有回應（預設訊息）
-                    <p className="text-gray-600 text-sm">
-                        開始記錄你的減重旅程，讓我給你專屬的鼓勵！
-                    </p>
-                )}
+                ) : isLoading ? (
+                    // Loading 狀態
+                    <div className="flex items-center gap-3 text-gray-500">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <p className="text-sm">教練正在思考回應...</p>
+                    </div>
+                ) : <p className="text-gray-800 leading-relaxed">
+                    {aiResponse}
+                </p>
+                }
             </div>
         </div>
     );

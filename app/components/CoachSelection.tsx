@@ -141,7 +141,7 @@ const CoachSelectionPage = () => {
                     bg-gradient-to-br ${coach.bgGradient} rounded-lg p-4 border-l-4 ${coach.borderColor}
                   `}>
                                         <p className="text-sm text-gray-700 italic">
-                                            {coach.example}
+                                            {coach.examples[0]}
                                         </p>
                                     </div>
                                 </div>

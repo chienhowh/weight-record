@@ -1,6 +1,7 @@
 // import OpenAI from 'openai';
 import { COACHES, type CoachId } from '@/app/constants/coaches';
 import { GoogleGenAI } from "@google/genai";
+import { NextResponse } from 'next/server';
 // const openai = new OpenAI({
 //     apiKey: process.env.OPENAI_API_KEY,
 // });
@@ -18,17 +19,8 @@ interface CoachResponseParams {
     consecutiveDays: number;
 }
 
-export async function generateCoachResponse(params: CoachResponseParams): Promise<string> {
-    const {
-        coachId,
-        weight,
-        exercised,
-        exerciseType,
-        note,
-        weightChange,
-        weeklyExerciseCount,
-        consecutiveDays,
-    } = params;
+export async function generateCoachResponseStream(params: CoachResponseParams): Promise<Response> {
+    const { coachId } = params;
 
     const coach = COACHES[coachId];
 
@@ -53,7 +45,7 @@ ${coach.examples.map((ex, i) => `${i + 1}. ${ex}`).join('\n')}
 5. 必須使用繁體中文
 6. 避免醫療診斷或極端飲食建議;
 
-請根據以上資訊，用你的個性給予簡短（30-50字）的回應和鼓勵。`;
+請根據以上資訊，用你的個性給予簡短（50-100字）的回應和鼓勵。`;
 
     try {
         // const completion = await openai.chat.completions.create({
@@ -69,7 +61,7 @@ ${coach.examples.map((ex, i) => `${i + 1}. ${ex}`).join('\n')}
         // const response = completion.choices[0]?.message?.content?.trim();
 
 
-        const response = await ai.models.generateContent({
+        const stream = await ai.models.generateContentStream({
             model: "gemini-2.5-flash",
             contents: userPrompt,
             config: {
@@ -77,16 +69,33 @@ ${coach.examples.map((ex, i) => `${i + 1}. ${ex}`).join('\n')}
                 temperature: 0.8,
             }
         });
-        if (!response) {
-            throw new Error('AI 回應為空');
-        }
-        console.log(response)
-        return response.text ?? "";
+
+        // 核心：將 Gemini Stream 轉換為標準的 Web ReadableStream
+        const readableStream = new ReadableStream({
+            async start(controller) {
+                for await (const chunk of stream) {
+                    const text = chunk.text;
+                    // 將每個文字片段編碼並推入 Web Stream
+                    controller.enqueue(new TextEncoder().encode(text));
+                }
+                controller.close();
+            },
+        });
+
+        // 返回一個 Response Stream 給前端
+        return new Response(readableStream, {
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+                'X-Content-Type-Options': 'nosniff', // 安全性考量
+            },
+        });
+
     } catch (error) {
         console.error('AI 生成失敗:', error);
-
-        // 降級處理：回傳預設回應
-        return getFallbackResponse(coachId, exercised, weightChange);
+        return NextResponse.json(
+            { error: 'AI 服務器發生錯誤' },
+            { status: 500 }
+        );
     }
 }
 
