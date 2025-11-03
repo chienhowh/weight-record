@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, Sparkles, Loader2, Flame, AirVent } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { getCoach } from '@/app/constants/coaches';
-import type { WeightRecord } from '@/app/hooks/useSupabaseRecords';
-import type { Stats } from '@/app/hooks/useSupabaseRecords';
+import type { Stats, WeightRecord } from '@/app/hooks/useSupabaseRecords';
 import { useRouter } from 'next/navigation';
-import { useSupabaseRecords } from '@/app/hooks/useSupabaseRecords';
+import { CoachId } from '@/app/constants/coaches';
+import { useSupabaseRecordsContext } from '@/app/providers/SupabaseRecordsProvider';
 
 interface CoachMessageCardProps {
-    coachId: string | null;
+    coachId: CoachId | null;
     latestRecord: WeightRecord | null;
     stats: Stats;
 }
@@ -19,15 +19,15 @@ export default function CoachMsgCard({ coachId, latestRecord, stats }: CoachMess
     const coach = getCoach(coachId);
     const { consecutiveDays } = stats;
     const router = useRouter();
-    const { generateAIResponseStream } = useSupabaseRecords();
+    const { generateAIResponseStream } = useSupabaseRecordsContext();
     const [aiResponse, setAiResponse] = useState('');
     // 檢查 AI 回應是否還在生成中
     useEffect(() => {
         if (latestRecord && !latestRecord.aiResponse) {
-            handleGenerateAIResponse(latestRecord);
+            handleGenerateAIResponse(latestRecord, coachId!);
         }
 
-    }, [latestRecord]);
+    }, [latestRecord?.id]);
 
     if (!coach) return null;
 
@@ -35,14 +35,15 @@ export default function CoachMsgCard({ coachId, latestRecord, stats }: CoachMess
     const hasResponse = !!latestRecord?.aiResponse;
 
 
-    const handleGenerateAIResponse = async (latestRecord: WeightRecord) => {
+    const handleGenerateAIResponse = async (latestRecord: WeightRecord, coachId: CoachId) => {
         setIsLoading(true);
         setAiResponse(''); // 清空上次的回覆
-
         try {
             // 2. 呼叫前端服務函式，並傳入 setResponse
+            console.log('qqqqqqqqq')
             await generateAIResponseStream(
-                latestRecord, // 你的日誌數據
+                latestRecord,
+                coachId,
                 setAiResponse // 👈 將狀態更新函式傳遞給它
             );
         } catch (e) {

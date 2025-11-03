@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 import { CoachId, COACHES } from "../constants/coaches";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import { useSupabaseRecords } from "../hooks/useSupabaseRecords";
 import Loading from "./Loading";
+import { useSupabaseRecordsContext } from "@/app/providers/SupabaseRecordsProvider";
 
 const CoachSelectionPage = () => {
     const router = useRouter();
-    const { coachId: existingCoachId, saveCoach, isLoading: dataLoading } = useSupabaseRecords();
+    const { coachId: existingCoachId, saveCoach, isLoading: dataLoading } = useSupabaseRecordsContext();
     const [selectedCoach, setSelectedCoach] = useState<CoachId | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [mode, setMode] = useState<'select' | 'update'>('select');

@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 import { Target, Scale, Calendar } from 'lucide-react';
-import { useSupabaseRecords } from '../hooks/useSupabaseRecords';
+import { useSupabaseRecordsContext } from '@/app/providers/SupabaseRecordsProvider';
 
 interface InitialSetupProps {
     onComplete: () => void;
 }
 
 export default function InitialSetup({ onComplete }: InitialSetupProps) {
-    const { saveSettings } = useSupabaseRecords();
+    const { saveSettings } = useSupabaseRecordsContext();
     const [targetWeight, setTargetWeight] = useState('');
     const [startWeight, setStartWeight] = useState('');
     const [isSaving, setIsSaving] = useState(false);

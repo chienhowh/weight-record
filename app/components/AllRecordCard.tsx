@@ -1,5 +1,5 @@
 import { Dumbbell, TrendingDown, Calendar } from "lucide-react";
-import { Stats } from "../hooks/useSupabaseRecords";
+import type { Stats } from "../hooks/useSupabaseRecords";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AllRecordCard({ stats, weightData }: { stats: Stats, weightData: { date: string, weight: number }[] }) {

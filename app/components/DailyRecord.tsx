@@ -1,8 +1,8 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, Scale, Dumbbell, StickyNote, Check } from 'lucide-react';
-import { useSupabaseRecords } from '../hooks/useSupabaseRecords';
 import { useRouter } from 'next/navigation';
+import { useSupabaseRecordsContext } from '@/app/providers/SupabaseRecordsProvider';
 
 const EXERCISE_TYPES = [
     { id: 'running', label: '跑步', emoji: '🏃' },
@@ -23,7 +23,7 @@ const DailyRecord = () => {
         fetchRecordByDate,
         isLoading,
         user
-    } = useSupabaseRecords();
+    } = useSupabaseRecordsContext();
     const [date, setDate] = useState(today);
     const [weight, setWeight] = useState('');
     const [exercised, setExercised] = useState(false);

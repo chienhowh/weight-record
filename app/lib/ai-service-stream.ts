@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 // });
 
 const ai = new GoogleGenAI({});
-
+const COACHES_TYPE = COACHES;
 interface CoachResponseParams {
     coachId: CoachId;
     weight: number;
@@ -22,7 +22,7 @@ interface CoachResponseParams {
 export async function generateCoachResponseStream(params: CoachResponseParams): Promise<Response> {
     const { coachId } = params;
 
-    const coach = COACHES[coachId];
+    const coach = COACHES_TYPE[coachId];
 
     // 建立情境描述
     const userPrompt = `使用者今日記錄：${buildContext(params)}`;

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabaseClient as supabase } from '@/app/lib/supabase/client';
-import { useAuth } from './useAuth';
+import { CoachId } from '../constants/coaches';
+import { useAuthContext } from '../providers/AuthProvider';
 
 export interface WeightRecord {
     id: string;
@@ -34,10 +35,10 @@ export interface Stats {
 }
 
 export function useSupabaseRecords() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading } = useAuthContext();
     const [records, setRecords] = useState<WeightRecord[]>([]);
     const [settings, setSettings] = useState<UserSettings | null>(null);
-    const [coachId, setCoachId] = useState<string | null>(null);
+    const [coachId, setCoachId] = useState<CoachId | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     // 載入資料
@@ -129,7 +130,7 @@ export function useSupabaseRecords() {
     };
 
     // 儲存教練選擇
-    const saveCoach = async (newCoachId: string) => {
+    const saveCoach = async (newCoachId: CoachId) => {
         if (!user) return;
 
         try {
@@ -312,6 +313,7 @@ export function useSupabaseRecords() {
 
     const generateAIResponseStream = async (
         record: Omit<WeightRecord, 'createdAt' | 'aiResponse'>,
+        coachId: string,
         setResponse: React.Dispatch<React.SetStateAction<string>>
     ) => {
         if (!user || !coachId) return;
@@ -375,6 +377,7 @@ export function useSupabaseRecords() {
                 // React 會處理這個狀態更新，並重新渲染 UI
                 setResponse((prev) => prev + chunk);
                 fullResponse += chunk;
+                console.log("🚀 ~ generateAIResponseStream ~ fullResponse:", fullResponse)
             }
             await updateRecord(record.id, {
                 aiResponse: fullResponse,

@@ -4,16 +4,16 @@ import React, { useEffect, useState } from 'react';
 import { Plus, LogOut, User } from 'lucide-react';
 import { getCoach } from '@/app/constants/coaches';
 import { useRouter } from 'next/navigation';
-import { useSupabaseRecords } from '../hooks/useSupabaseRecords';
 import Loading from './Loading';
 import CoachMsgCard from './CoachMsgCard';
 import AllRecordCard from './AllRecordCard';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../providers/AuthProvider';
+import { useSupabaseRecordsContext } from '@/app/providers/SupabaseRecordsProvider';
 
 export default function Dashboard() {
     const router = useRouter();
-    const { settings, coachId, getStats, getRecentRecords, isLoading, saveCoach } = useSupabaseRecords();
-    const { user, signOut } = useAuth();
+    const { settings, coachId, getStats, getRecentRecords, isLoading } = useSupabaseRecordsContext();
+    const { user, signOut } = useAuthContext();
     const [showMenu, setShowMenu] = useState(false);
     const currentCoach = getCoach(coachId);
 

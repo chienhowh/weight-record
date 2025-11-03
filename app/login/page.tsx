@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/hooks/useAuth';
 import { Mail, Lock, Loader2 } from 'lucide-react';
+import { useAuthContext } from '../providers/AuthProvider';
 
 export default function LoginPage() {
     const router = useRouter();
-    const { user, loading: authLoading, signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
+    const { user, loading: authLoading, signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuthContext();
 
     const [mode, setMode] = useState<'login' | 'signup'>('login');
     const [email, setEmail] = useState('');
