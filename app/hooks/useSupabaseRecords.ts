@@ -226,7 +226,7 @@ export function useSupabaseRecords() {
             setRecords([newRecord, ...records]);
 
             // 3. 背景呼叫 AI API (不阻塞 UI)
-            generateAIResponse(newRecord.id, record, coachId);
+            // generateAIResponse(record, coachId, setResponse);
 
             console.log("✅ addRecordWithAI 成功:", newRecord.id);
             return newRecord;
@@ -238,11 +238,11 @@ export function useSupabaseRecords() {
 
     // 生成 AI 回應
     const generateAIResponse = async (
-        recordId: string,
-        record: Omit<WeightRecord, 'id' | 'createdAt' | 'aiResponse'>,
-        currentCoachId: string | null
+        record: Omit<WeightRecord, 'createdAt' | 'aiResponse'>,
+        coachId: CoachId,
+        setResponse: React.Dispatch<React.SetStateAction<string>>
     ) => {
-        if (!user || !currentCoachId) return;
+        if (!user || !coachId) return;
 
         try {
             console.log("🤖 開始生成 AI 回應...");
@@ -268,7 +268,7 @@ export function useSupabaseRecords() {
                 },
                 body: JSON.stringify({
                     userId: user.id,
-                    coachId: currentCoachId,
+                    coachId: coachId,
                     weight: record.weight,
                     exercised: record.exercised,
                     exerciseType: record.exerciseType,
@@ -287,22 +287,26 @@ export function useSupabaseRecords() {
             console.log("✅ AI 回應:", data.response);
 
             // 4. 更新記錄加上 AI 回應
-            const { error: updateError } = await supabase
-                .from('weight_records')
-                .update({ ai_response: data.response })
-                .eq('id', recordId)
-                .eq('user_id', user.id);
+            // const { error: updateError } = await supabase
+            //     .from('weight_records')
+            //     .update({ ai_response: data.response })
+            //     .eq('id', recordId)
+            //     .eq('user_id', user.id);
 
-            if (updateError) throw updateError;
+            // if (updateError) throw updateError;
 
             // 5. 更新本地 state
-            setRecords(prevRecords =>
-                prevRecords.map(r =>
-                    r.id === recordId
-                        ? { ...r, aiResponse: data.response }
-                        : r
-                )
-            );
+            // setRecords(prevRecords =>
+            //     prevRecords.map(r =>
+            //         r.id === recordId
+            //             ? { ...r, aiResponse: data.response }
+            //             : r
+            //     )
+            // );
+            setResponse(data.response);
+            await updateRecord(record.id, {
+                aiResponse: data.response,
+            });
 
             console.log("✅ AI 回應已儲存到資料庫");
         } catch (error) {
@@ -561,6 +565,7 @@ export function useSupabaseRecords() {
         fetchRecordByDate,
         getRecentRecords,
         getStats,
-        generateAIResponseStream
+        generateAIResponseStream,
+        generateAIResponse
     };
 }

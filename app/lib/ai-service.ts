@@ -46,14 +46,13 @@ export async function generateCoachResponse(params: CoachResponseParams): Promis
 ${coach.examples.map((ex, i) => `${i + 1}. ${ex}`).join('\n')}
 
 注意事項：
-1. 回應控制在 30-50 字以內（繁體中文）
-2. 保持你的個性，不要偏離角色
-3. 根據使用者的數據給予個性化回應
-4. 不要重複使用相同的句子
-5. 必須使用繁體中文
-6. 避免醫療診斷或極端飲食建議;
+1. 保持你的個性，不要偏離角色
+2. 根據使用者的數據給予個性化回應
+3. 不要重複使用相同的句子
+4. 必須使用繁體中文
+5. 避免醫療診斷或極端飲食建議;
 
-請根據以上資訊，用你的個性給予簡短（30-50字）的回應和鼓勵。`;
+請根據以上資訊，用你的個性給予簡短（50-100字）的回應和鼓勵。`;
 
     try {
         // const completion = await openai.chat.completions.create({
