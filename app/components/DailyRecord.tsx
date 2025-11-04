@@ -3,19 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, Scale, Dumbbell, StickyNote, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSupabaseRecordsContext } from '@/app/providers/SupabaseRecordsProvider';
+import { EXERCISE } from '@/app/constants/exercises';
+import { useSearchParams } from 'next/navigation';
+import { useToast } from '@/app/providers/ToastProvider';
 
-const EXERCISE_TYPES = [
-    { id: 'running', label: '跑步', emoji: '🏃' },
-    { id: 'gym', label: '重訓', emoji: '💪' },
-    { id: 'yoga', label: '瑜珈', emoji: '🧘' },
-    { id: 'swimming', label: '游泳', emoji: '🏊' },
-    { id: 'cycling', label: '騎車', emoji: '🚴' },
-    { id: 'walking', label: '走路', emoji: '🚶' },
-    { id: 'other', label: '其他', emoji: '✨' },
-];
-
+const EXERCISE_TYPES = EXERCISE;
 const DailyRecord = () => {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const today = new Date().toISOString().split('T')[0];
     const {
         updateRecord,
@@ -24,13 +19,15 @@ const DailyRecord = () => {
         isLoading,
         user
     } = useSupabaseRecordsContext();
-    const [date, setDate] = useState(today);
+    const urlDate = searchParams.get('date');
+    const [date, setDate] = useState(urlDate || today);
     const [weight, setWeight] = useState('');
     const [exercised, setExercised] = useState(false);
     const [exerciseType, setExerciseType] = useState('');
     const [note, setNote] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [existingRecordId, setExistingRecordId] = useState<string | null>(null);
+    const { success } = useToast();
 
     useEffect(() => {
         loadRecordForDate(date);
@@ -92,10 +89,12 @@ const DailyRecord = () => {
             if (existingRecordId) {
                 // 更新現有記錄
                 updateRecord(existingRecordId, recordData)
+                success('記錄更新成功！');
             } else {
                 addRecord(recordData)
+                success('記錄新增成功！');
             }
-            
+
             router.push('/dashboard');
         } catch (error: any) {
             console.error('儲存失敗:', error);

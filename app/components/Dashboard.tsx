@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Plus, LogOut, User } from 'lucide-react';
+import { Plus, LogOut, User, History } from 'lucide-react';
 import { getCoach } from '@/app/constants/coaches';
 import { useRouter } from 'next/navigation';
 import Loading from './Loading';
@@ -101,6 +101,14 @@ export default function Dashboard() {
                                         </p>
                                     </div>
 
+
+                                    <button
+                                        onClick={() => router.push('/history')}
+                                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                    >
+                                        <History className="w-4 h-4" />
+                                        歷史紀錄
+                                    </button>
                                     <button
                                         onClick={handleLogout}
                                         className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
