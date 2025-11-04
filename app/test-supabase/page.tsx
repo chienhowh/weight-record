@@ -1,9 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/app/lib/supabase/client';
+import { supabaseClient as supabase } from '@/app/lib/supabase/client';
+import { notFound } from 'next/navigation';
 
 export default function TestSupabase() {
+    if (process.env.NODE_ENV === 'production') {
+        notFound(); // 直接回 404
+    }
+
+
     const [status, setStatus] = useState<'testing' | 'success' | 'error'>('testing');
     const [message, setMessage] = useState('');
     const [user, setUser] = useState<any>(null);
@@ -132,8 +138,8 @@ export default function TestSupabase() {
 
                     {/* Status */}
                     <div className={`p-4 rounded-lg mb-6 ${status === 'testing' ? 'bg-blue-50 border-2 border-blue-200' :
-                            status === 'success' ? 'bg-green-50 border-2 border-green-200' :
-                                'bg-red-50 border-2 border-red-200'
+                        status === 'success' ? 'bg-green-50 border-2 border-green-200' :
+                            'bg-red-50 border-2 border-red-200'
                         }`}>
                         <div className="flex items-center gap-3">
                             {status === 'testing' && (
@@ -146,8 +152,8 @@ export default function TestSupabase() {
                                 <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white">✗</div>
                             )}
                             <p className={`font-medium ${status === 'testing' ? 'text-blue-800' :
-                                    status === 'success' ? 'text-green-800' :
-                                        'text-red-800'
+                                status === 'success' ? 'text-green-800' :
+                                    'text-red-800'
                                 }`}>
                                 {message || '測試中...'}
                             </p>
