@@ -40,7 +40,6 @@ export default function CoachMsgCard({ coachId, latestRecord, stats }: CoachMess
         setAiResponse(''); // 清空上次的回覆
         try {
             // 2. 呼叫前端服務函式，並傳入 setResponse
-            console.log('qqqqqqqqq')
             await generateAIResponseStream(
                 latestRecord,
                 coachId,
@@ -63,7 +62,7 @@ export default function CoachMsgCard({ coachId, latestRecord, stats }: CoachMess
                     <h3 className="text-lg font-bold text-gray-800">{coach.name}</h3>
                 </div>
                 <button
-                    onClick={() => router.push('/')}
+                    onClick={() => router.push('/coach')}
                     className="px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                 >
                     更換教練

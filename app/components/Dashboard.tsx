@@ -30,18 +30,17 @@ export default function Dashboard() {
     }
 
     // 如果沒有設定，導向設定頁
+    if (!currentCoach) {
+        router.push('/coach');
+        return null;
+    }
+
     if (!settings) {
         router.push('/setup');
         return null;
     }
 
-    if (!currentCoach) {
-        router.push('/');
-        return null;
-    }
-
     const stats = getStats();
-
 
     if (!stats) {
         return (
@@ -53,7 +52,6 @@ export default function Dashboard() {
 
     // 準備圖表資料
     const recentRecords = getRecentRecords(7);
-    console.log("🚀 ~ Dashboard ~ recentRecords:", recentRecords)
     const latestRecord = recentRecords[0] || null; // 取得最新記錄
 
     const weightData = recentRecords.length > 0

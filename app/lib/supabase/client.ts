@@ -5,11 +5,15 @@
 
 // export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 import { createBrowserClient } from '@supabase/ssr'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Supabase environment variables not loaded.');
+}
 export const supabaseClient = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  supabaseUrl,
+  supabaseAnonKey
 )
 
 // 資料庫類型定義（對應我們的 schema）
