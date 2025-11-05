@@ -28,10 +28,7 @@ export default function CoachMsgCard({
     const [aiResponse, setAiResponse] = useState("");
     // 檢查 AI 回應是否還在生成中
     useEffect(() => {
-    console.log("🚀 ~ CoachMsgCard ~ latestRecord?.id:", latestRecord?.id)
-
         if (latestRecord && !latestRecord.aiResponse) {
-            console.log("✅ 沒有 AI 回應，開始生成...");
             handleGenerateAIResponse(latestRecord, coachId!);
         }
     }, [latestRecord?.id]);
