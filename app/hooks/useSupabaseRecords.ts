@@ -59,7 +59,7 @@ export function useSupabaseRecords() {
                 .from('user_settings')
                 .select('*')
                 .eq('user_id', user.id)
-                .single();
+                .maybeSingle();
 
             if (settingsData) {
                 setSettings({
@@ -74,7 +74,7 @@ export function useSupabaseRecords() {
                 .from('user_coaches')
                 .select('*')
                 .eq('user_id', user.id)
-                .single();
+                .maybeSingle();
 
             if (coachData) {
                 setCoachId(coachData.coach_id);

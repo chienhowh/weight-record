@@ -25,19 +25,26 @@ export default function Dashboard() {
         }
     }, [showMenu]);
 
+    useEffect(() => {
+        // 確保數據載入完成後才進行導航檢查
+        if (isLoading) {
+            return;
+        }
+
+        if (!currentCoach) {
+            router.push('/coach');
+            return;
+        }
+
+        if (!settings) {
+            router.push('/setup');
+            return;
+        }
+
+    }, [isLoading, currentCoach, settings, router]);
+
     if (isLoading) {
         return <Loading />
-    }
-
-    // 如果沒有設定，導向設定頁
-    if (!currentCoach) {
-        router.push('/coach');
-        return null;
-    }
-
-    if (!settings) {
-        router.push('/setup');
-        return null;
     }
 
     const stats = getStats();
