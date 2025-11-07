@@ -19,6 +19,8 @@ const DailyRecord = () => {
         isLoading,
         user,
         coachId,
+        getRecentRecords,
+        settings
     } = useSupabaseRecordsContext();
     const urlDate = searchParams.get('date');
     const [date, setDate] = useState(urlDate || today);
@@ -29,10 +31,19 @@ const DailyRecord = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [existingRecordId, setExistingRecordId] = useState<string | null>(null);
     const { success } = useToast();
+    const recentRecords = getRecentRecords(7);
+    const latestRecord = recentRecords[0] || null; // 取得最新記錄
 
     useEffect(() => {
         loadRecordForDate(date);
     }, [date, user]);
+
+    useEffect(() => {
+        if (!existingRecordId) {
+            setWeight(settings?.startWeight.toString() || latestRecord?.weight.toString() || '');
+        }
+    }, [settings, latestRecord, existingRecordId]);
+
 
     const loadRecordForDate = async (selectedDate: string) => {
         try {
@@ -45,7 +56,6 @@ const DailyRecord = () => {
                 setNote(data.note || '');
                 setExistingRecordId(data.id);
             } else {
-                setWeight('');
                 setExercised(false);
                 setExerciseType('');
                 setNote('');
