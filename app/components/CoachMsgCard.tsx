@@ -81,7 +81,6 @@ export default function CoachMsgCard({
 
             {/* Content */}
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                {!latestRecord && (<p className="text-gray-600 text-sm">開始記錄你的減重旅程，讓我給你專屬的鼓勵！</p>)}
                 {isLoading ? (
                     // Loading 狀態
                     <div className="flex items-center gap-3 text-gray-500">
