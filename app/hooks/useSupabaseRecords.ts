@@ -14,6 +14,7 @@ export interface WeightRecord {
     note: string;
     aiResponse?: string | null;
     createdAt: string;
+    coachId: CoachId | null;
 }
 
 export interface UserSettings {
@@ -98,6 +99,7 @@ export function useSupabaseRecords() {
                         note: r.note || '',
                         aiResponse: r.ai_response,
                         createdAt: r.created_at,
+                        coachId: r.coach_id,
                     }))
                 );
             }
@@ -162,6 +164,7 @@ export function useSupabaseRecords() {
                     exercised: record.exercised,
                     exercise_type: record.exerciseType,
                     note: record.note,
+                    coach_id: coachId,
                 })
                 .select()
                 .single();
@@ -177,6 +180,7 @@ export function useSupabaseRecords() {
                 note: data.note || '',
                 aiResponse: data.ai_response,
                 createdAt: data.created_at,
+                coachId: data.coach_id,
             };
 
             setRecords([newRecord, ...records]);
@@ -206,6 +210,7 @@ export function useSupabaseRecords() {
                     exercised: record.exercised,
                     exercise_type: record.exerciseType,
                     note: record.note,
+                    coach_id: coachId,
                 })
                 .select()
                 .single();
@@ -221,6 +226,7 @@ export function useSupabaseRecords() {
                 note: data.note || '',
                 aiResponse: null,
                 createdAt: data.created_at,
+                coachId: data.coach_id,
             };
 
             setRecords([newRecord, ...records]);
@@ -317,7 +323,7 @@ export function useSupabaseRecords() {
 
     const generateAIResponseStream = async (
         record: Omit<WeightRecord, 'createdAt' | 'aiResponse'>,
-        coachId: string,
+        coachId: CoachId,
         setResponse: React.Dispatch<React.SetStateAction<string>>
     ) => {
         if (!user || !coachId) return;
@@ -381,10 +387,11 @@ export function useSupabaseRecords() {
                 // React 會處理這個狀態更新，並重新渲染 UI
                 setResponse((prev) => prev + chunk);
                 fullResponse += chunk;
-                console.log("🚀 ~ generateAIResponseStream ~ fullResponse:", fullResponse)
+                // console.log("🚀 ~ generateAIResponseStream ~ fullResponse:", fullResponse)
             }
             await updateRecord(record.id, {
                 aiResponse: fullResponse,
+                coachId: coachId,
             });
 
         } catch (error) {
@@ -407,6 +414,7 @@ export function useSupabaseRecords() {
                     exercise_type: updates.exerciseType,
                     note: updates.note,
                     ai_response: updates.aiResponse,
+                    coach_id: updates.coachId,
                 })
                 .eq('id', id);
 

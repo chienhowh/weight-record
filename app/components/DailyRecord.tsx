@@ -17,7 +17,8 @@ const DailyRecord = () => {
         addRecord,
         fetchRecordByDate,
         isLoading,
-        user
+        user,
+        coachId,
     } = useSupabaseRecordsContext();
     const urlDate = searchParams.get('date');
     const [date, setDate] = useState(urlDate || today);
@@ -84,6 +85,7 @@ const DailyRecord = () => {
                 exercised,
                 exerciseType: exercised ? exerciseType : null,
                 note: note.trim(),
+                coachId,
             };
 
             if (existingRecordId) {

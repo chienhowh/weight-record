@@ -23,20 +23,20 @@ export default function CoachMsgCard({
     const coach = getCoach(coachId);
     const { consecutiveDays } = stats;
     const router = useRouter();
-    const { generateAIResponseStream, generateAIResponse } =
+    const { generateAIResponseStream } =
         useSupabaseRecordsContext();
     const [aiResponse, setAiResponse] = useState("");
     // 檢查 AI 回應是否還在生成中
     useEffect(() => {
-        if (latestRecord && !latestRecord.aiResponse) {
+        setAiResponse(latestRecord?.aiResponse || "");
+        if (latestRecord && (!latestRecord.aiResponse || latestRecord.coachId !== coachId)) {
             handleGenerateAIResponse(latestRecord, coachId!);
         }
-    }, [latestRecord?.id]);
+    }, [latestRecord?.id, coachId]);
 
     if (!coach) return null;
 
     const CoachIcon = coach.icon;
-    const hasResponse = !!latestRecord?.aiResponse;
 
     const handleGenerateAIResponse = async (
         latestRecord: WeightRecord,
@@ -81,18 +81,21 @@ export default function CoachMsgCard({
 
             {/* Content */}
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                {!latestRecord ? (
-                    <p className="text-gray-600 text-sm">
-                        開始記錄你的減重旅程，讓我給你專屬的鼓勵！
-                    </p>
-                ) : hasResponse ? (
+                {!latestRecord && (<p className="text-gray-600 text-sm">開始記錄你的減重旅程，讓我給你專屬的鼓勵！</p>)}
+                {isLoading ? (
+                    // Loading 狀態
+                    <div className="flex items-center gap-3 text-gray-500">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <p className="text-sm">教練正在思考回應...</p>
+                    </div>
+                ) : aiResponse ? (
                     // 有 AI 回應
                     <div className="space-y-2">
                         <p className="text-gray-800 leading-relaxed">
-                            {latestRecord.aiResponse}
+                            {aiResponse}
                         </p>
                         <p className="text-xs text-gray-400">
-                            {new Date(latestRecord.createdAt).toLocaleString("zh-TW", {
+                            {new Date().toLocaleString("zh-TW", {
                                 month: "2-digit",
                                 day: "2-digit",
                                 hour: "2-digit",
@@ -100,15 +103,7 @@ export default function CoachMsgCard({
                             })}
                         </p>
                     </div>
-                ) : isLoading ? (
-                    // Loading 狀態
-                    <div className="flex items-center gap-3 text-gray-500">
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <p className="text-sm">教練正在思考回應...</p>
-                    </div>
-                ) : (
-                    <p className="text-gray-800 leading-relaxed">{aiResponse}</p>
-                )}
+                ) : (<p className="text-gray-600 text-sm">開始記錄你的減重旅程，讓我給你專屬的鼓勵！</p>)}
             </div>
         </div>
     );

@@ -8,7 +8,7 @@ const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
 function checkRateLimit(userId: string): boolean {
     const now = Date.now();
-    const limit = 10; // 每小時 10 次
+    const limit = 30; // 每小時 10 次
     const windowMs = 60 * 60 * 1000; // 1 小時
 
     const userLimit = requestCounts.get(userId);
