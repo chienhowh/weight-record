@@ -21,6 +21,11 @@ export interface UserSettings {
     targetWeight: number;
     startWeight: number;
     startDate: string;
+    reminderTime: string | null;      // 儲存時間字符串，例如 "18:30:00"
+    reminderEnabled: boolean;
+    reminderMessage: string | null;
+    lastReminderSent?: string; // ISO 8601 Timestamp
+    timezone: string;
 }
 
 export interface Stats {
@@ -67,6 +72,11 @@ export function useSupabaseRecords() {
                     targetWeight: settingsData.target_weight,
                     startWeight: settingsData.start_weight,
                     startDate: settingsData.start_date,
+                    reminderEnabled: settingsData.reminder_enabled,
+                    reminderTime: settingsData.reminder_time,
+                    reminderMessage: settingsData.reminder_message,
+                    lastReminderSent: settingsData.last_reminder_sent,
+                    timezone: settingsData.timezone,
                 });
             }
 
@@ -120,6 +130,9 @@ export function useSupabaseRecords() {
                 target_weight: newSettings.targetWeight,
                 start_weight: newSettings.startWeight,
                 start_date: newSettings.startDate,
+                reminder_time: newSettings.reminderTime,
+                reminder_enabled: newSettings.reminderEnabled,
+                timezone: newSettings.timezone,
             }, { onConflict: 'user_id' });
 
             if (error) throw error;
