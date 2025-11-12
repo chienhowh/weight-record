@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Download, Calendar, FileText, Filter } from 'lucide-react';
 import { useSupabaseRecordsContext } from '../providers/SupabaseRecordsProvider';
-import type { WeightRecord } from '../hooks/useSupabaseRecords';
+import type { WeightRecord } from '@/app/types/appModels';
 import { getCoach } from '../constants/coaches';
 import dayjs from 'dayjs';
 import { fetchRecordsByDateRange } from '../services/weight-records-api';

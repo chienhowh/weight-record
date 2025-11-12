@@ -1,6 +1,6 @@
 
 import { supabaseClient as supabase } from '@/app/lib/supabase/client';
-import type { WeightRecord } from '@/app/hooks/useSupabaseRecords';
+import type { WeightRecord } from '@/app/types/appModels';
 
 
 //fetchRecordsByDateRange from supabase
