@@ -60,11 +60,11 @@ const sendNotification = async (userId: string, message: string) => {
 /**
  * Vercel Cron Job 處理函式
  */
-export default async function handler(req: NextRequest, res: NextResponse) {
+export async function GET(req: NextRequest, res: NextResponse) {
     // 確保只有 POST 請求才能觸發 (Vercel Cron Job 發送的是 POST 請求)
-    if (req.method !== 'POST') {
-        return NextResponse.json({ message: 'Method Not Allowed' }, { status: 405 });
-    }
+    // if (req.method !== 'POST') {
+    //     return NextResponse.json({ message: 'Method Not Allowed' }, { status: 405 });
+    // }
 
     if (req.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
         console.warn('[CRON] Unauthorized call');
