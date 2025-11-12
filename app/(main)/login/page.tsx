@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Loader2 } from "lucide-react";
-import { useAuthContext } from "../providers/AuthProvider";
+import { useAuthContext } from "@/app/providers/AuthProvider";
 
 export default function LoginPage() {
   const router = useRouter();

@@ -6,11 +6,11 @@ import {
     Edit2, Trash2, ChevronDown, ChevronUp, Filter
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { getCoach } from '../constants/coaches';
-import Loading from '../components/Loading';
-import { EXERCISE } from '../constants/exercises';
-import { useSupabaseRecordsContext } from '../providers/SupabaseRecordsProvider';
-import { useToast } from '../providers/ToastProvider';
+import { getCoach } from '@/app/constants/coaches';
+import Loading from '@/app/components/Loading';
+import { EXERCISE } from '@/app/constants/exercises';
+import { useSupabaseRecordsContext } from '@/app/providers/SupabaseRecordsProvider';
+import { useToast } from '@/app/providers/ToastProvider';
 
 const EXERCISE_TYPES = EXERCISE;
 
@@ -125,38 +125,29 @@ export default function RecordHistory() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             {/* Header */}
-            <div className="bg-white shadow-sm border-b sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => router.push('/dashboard')}
-                                className="text-gray-600 hover:text-gray-800 p-1"
-                            >
-                                <ArrowLeft className="w-5 h-5" />
-                            </button>
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-800">記錄歷史</h1>
-                                <p className="text-sm text-gray-500">共 {filteredRecords.length} 筆記錄</p>
-                            </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4">
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-3">
+                        <div>
+                            <p className="text-sm text-gray-500">共 {filteredRecords.length} 筆記錄</p>
                         </div>
+                    </div>
 
-                        {/* Month Filter */}
-                        <div className="flex items-center gap-2">
-                            <Filter className="w-4 h-4 text-gray-400" />
-                            <select
-                                value={filterMonth}
-                                onChange={(e) => setFilterMonth(e.target.value)}
-                                className="px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
-                            >
-                                <option value="all">全部月份</option>
-                                {availableMonths.map(month => (
-                                    <option key={month} value={month}>
-                                        {formatMonth(month)}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                    {/* Month Filter */}
+                    <div className="flex items-center gap-2">
+                        <Filter className="w-4 h-4 text-gray-400" />
+                        <select
+                            value={filterMonth}
+                            onChange={(e) => setFilterMonth(e.target.value)}
+                            className="px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                        >
+                            <option value="all">全部月份</option>
+                            {availableMonths.map(month => (
+                                <option key={month} value={month}>
+                                    {formatMonth(month)}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
             </div>

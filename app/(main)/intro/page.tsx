@@ -12,7 +12,7 @@ import {
     Trophy,
     Zap
 } from 'lucide-react';
-import { COACHES } from '../constants/coaches';
+import { COACHES } from '@/app/constants/coaches';
 
 export default function IntroPage() {
     const router = useRouter();

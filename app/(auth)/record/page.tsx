@@ -1,5 +1,5 @@
 "use client";
-import DailyRecord from '../components/DailyRecord';
+import DailyRecord from '@/app/components/DailyRecord';
 import { Suspense } from 'react';
 
 export default function RecordPage() {

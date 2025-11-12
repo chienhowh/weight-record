@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { AuthProvider } from "./providers/AuthProvider";
-import { SupabaseRecordsProvider } from "./providers/SupabaseRecordsProvider";
-import { ToastProvider } from "./providers/ToastProvider";
+import "./../globals.css";
+import { AuthProvider } from "@/app/providers/AuthProvider";
+import { SupabaseRecordsProvider } from "@/app/providers/SupabaseRecordsProvider";
+import { ToastProvider } from "@/app/providers/ToastProvider";
+import Header from "@/app/components/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,6 +26,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
     <html lang="en">
       <body
@@ -33,6 +35,7 @@ export default function RootLayout({
         <ToastProvider>
           <AuthProvider>
             <SupabaseRecordsProvider>
+              <Header />
               {children}
             </SupabaseRecordsProvider>
           </AuthProvider>

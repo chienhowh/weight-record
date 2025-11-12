@@ -1,6 +1,6 @@
 "use client";
 
-import InitialSetup from "../components/InitialSetup";
+import InitialSetup from "@/app/components/InitialSetup";
 
 export default function SetupPage() {
   return <InitialSetup />;

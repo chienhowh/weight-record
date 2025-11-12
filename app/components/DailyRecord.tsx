@@ -124,29 +124,12 @@ const DailyRecord = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-            {/* Header */}
-            <div className="bg-white shadow-sm border-b sticky top-0 z-10">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => window.history.back()}
-                            className="text-gray-600 hover:text-gray-800 p-1"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
-                        <h1 className="text-2xl font-bold text-gray-800"> {existingRecordId ? '編輯記錄' : '記錄今日數據'}</h1>
-                    </div>
-                </div>
-            </div>
-
             <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-                {existingRecordId && (
-                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
-                        <p className="text-sm text-blue-800">
-                            📝 此日期已有記錄，儲存後將會更新現有資料
-                        </p>
-                    </div>
-                )}
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
+                    <p className="text-sm text-blue-800">
+                        {existingRecordId ? '此日期已有記錄，儲存後將會更新現有資料' : '記錄今日數據'}
+                    </p>
+                </div>
                 <form onSubmit={handleSubmit} className="space-y-6">
 
                     {/* Date Picker */}
