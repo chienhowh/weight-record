@@ -491,7 +491,7 @@ export function useSupabaseRecords() {
         }
     };
 
-    // 計算統計
+
     const getStats = (): Stats | null => {
         if (!settings) {
             return null;

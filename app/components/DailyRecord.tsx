@@ -40,7 +40,7 @@ const DailyRecord = () => {
 
     useEffect(() => {
         if (!existingRecordId) {
-            setWeight(settings?.startWeight.toString() || latestRecord?.weight.toString() || '');
+            setWeight(latestRecord?.weight.toString() || settings?.startWeight.toString() || '');
         }
     }, [settings, latestRecord, existingRecordId]);
 
