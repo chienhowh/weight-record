@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { getCoach } from "@/app/constants/coaches";
-import type { Stats, WeightRecord } from "@/app/hooks/useSupabaseRecords";
 import { useRouter } from "next/navigation";
 import { CoachId } from "@/app/constants/coaches";
 import { useSupabaseRecordsContext } from "@/app/providers/SupabaseRecordsProvider";
+import { Stats, WeightRecord } from "@/app/types/appModels";
 
 interface CoachMessageCardProps {
     coachId: CoachId | null;
